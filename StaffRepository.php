@@ -9,16 +9,16 @@ interface iStaffRepository
 
 class StaffRepository implements iStaffRepository
 {
-    const fileName = 'data.csv';
-
     const header = ['firstName', 'lastName', 'email', 'phoneNumber1', 'phoneNumber2', 'comment'];
+
+    protected $fileName = 'staff.csv';
 
     private function getFile()
     {
-        if (file_exists(self::fileName)) {
-            $file = fopen(self::fileName, "r");
+        if (file_exists($this->fileName)) {
+            $file = fopen($this->fileName, "r");
             if (fgetcsv($file) === self::header) {     //check if header matches the current file
-                return self::fileName;
+                return $this->fileName;
             }
         }
         return $this->createNewFile();
@@ -26,18 +26,18 @@ class StaffRepository implements iStaffRepository
 
     private function createNewFile ()
     {
-        $csvFile = fopen(self::fileName, "w");
+        $csvFile = fopen($this->fileName, "w");
         fputcsv($csvFile, self::header);
         fclose($csvFile);
 
-        return self::fileName;
+        return $this->fileName;
     }
 
     public function add(Staff $staff)
     {
         $data = $staff->getObjectAsArray();
 
-        $csvFile = fopen(self::getFile(), 'a') or die("Unable to open file!");
+        $csvFile = fopen($this->getFile(), 'a') or die("Unable to open file!");
         fputcsv($csvFile, $data);
         fclose($csvFile);
 
@@ -48,7 +48,7 @@ class StaffRepository implements iStaffRepository
     {
         $staffArray = [];
 
-        $csvFile = fopen(self::getFile(), 'r') or die("Unable to open file!");
+        $csvFile = fopen($this->getFile(), 'r') or die("Unable to open file!");
 
         do {
             $row = fgetcsv($csvFile);
@@ -72,13 +72,13 @@ class StaffRepository implements iStaffRepository
 
     public function delete($email = '')  //delete creates a new file and copies all rows except one where email matches
     {
-        $currentFileName = self::fileName;
+        $currentFileName = $this->getFile();
         $tempFileName =  'temp' . $currentFileName;
 
         if (file_exists($tempFileName)) unlink($tempFileName);
 
         $newFile = fopen($tempFileName, "w");
-        $csvFile = fopen(self::getFile(), 'r') or die("Unable to open file!");
+        $csvFile = fopen($currentFileName, 'r') or die("Unable to open file!");
 
         do {
             $row = fgetcsv($csvFile);
